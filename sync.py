@@ -77,7 +77,7 @@ def fetch_wheels(session: requests.Session) -> list[dict]:
     rows = []
     for tr in table.find_all("tr", class_="BuyingTableRow"):
         cells = [td.get_text(strip=True) for td in tr.find_all("td")]
-        row = {name: (cells[i] if i < len(cells) else "").rstrip("+")
+        row = {name: (cells[i] if i < len(cells) else "").rstrip("+").replace("$", "")
                for i, name in named_cols}
         rows.append(row)
     if not rows:
