@@ -38,7 +38,21 @@ def log(msg: str) -> None:
 
 
 def login(session: requests.Session) -> None:
-    raise NotImplementedError
+    page = session.get(LOGIN_PAGE_URL)
+    page.raise_for_status()
+    soup = BeautifulSoup(page.text, "html.parser")
+    token_input = soup.find("input", {"name": "__RequestVerificationToken"})
+    token = token_input["value"] if token_input else ""
+    payload = {
+        "UserName": TIREWEB_USER,
+        "Password": TIREWEB_PASS,
+        "RememberMe": "false",
+        "__RequestVerificationToken": token,
+    }
+    resp = session.post(LOGIN_PAGE_URL, data=payload)
+    resp.raise_for_status()
+    if "LogOn" in resp.url or "login" in resp.url.lower():
+        raise RuntimeError("Login failed — check TIREWEB_USER and TIREWEB_PASS in .env")
 
 
 def fetch_wheels(session: requests.Session) -> list[dict]:
