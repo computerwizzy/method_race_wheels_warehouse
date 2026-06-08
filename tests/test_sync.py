@@ -153,3 +153,28 @@ class TestWriteCsv:
             header_line = f.readline().strip()
 
         assert header_line == "A,B"
+
+
+class TestUploadFtp:
+    def test_logs_in_and_uploads_file(self, tmp_path):
+        local = tmp_path / "inventory.csv"
+        local.write_text("Part Number,Price\n301-5883B,$299.99", encoding="utf-8")
+
+        with patch("ftplib.FTP") as MockFTP:
+            ftp_instance = MockFTP.return_value.__enter__.return_value
+            sync.upload_ftp(str(local))
+
+        ftp_instance.login.assert_called_once_with("ftp_user", "ftp_pass")
+        ftp_instance.storbinary.assert_called_once()
+        stor_cmd = ftp_instance.storbinary.call_args[0][0]
+        assert stor_cmd == "STOR /inventory.csv"
+
+    def test_upload_uses_correct_ftp_host(self, tmp_path):
+        local = tmp_path / "inventory.csv"
+        local.write_text("data", encoding="utf-8")
+
+        with patch("ftplib.FTP") as MockFTP:
+            MockFTP.return_value.__enter__.return_value = MagicMock()
+            sync.upload_ftp(str(local))
+
+        MockFTP.assert_called_once_with("ftp.test.com")

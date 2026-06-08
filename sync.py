@@ -84,7 +84,10 @@ def write_csv(rows: list[dict], path: str) -> None:
 
 
 def upload_ftp(local_path: str) -> None:
-    raise NotImplementedError
+    with ftplib.FTP(FTP_HOST) as ftp:
+        ftp.login(FTP_USER, FTP_PASS)
+        with open(local_path, "rb") as f:
+            ftp.storbinary(f"STOR {FTP_PATH}", f)
 
 
 def main() -> None:
