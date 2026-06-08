@@ -71,13 +71,14 @@ def fetch_wheels(session: requests.Session) -> list[dict]:
         (i, cell.get_text(strip=True))
         for i, cell in enumerate(header_cells)
         if cell.get_text(strip=True) and i < n_cols
-        # skip cols 17-22: empty/button/concatenated-duplicate columns
-        and i not in (17, 18, 19, 20, 21, 22)
+        # skip Image (1) and cols 17-22: empty/button/concatenated-duplicate columns
+        and i not in (1, 17, 18, 19, 20, 21, 22)
     ]
     rows = []
     for tr in table.find_all("tr", class_="BuyingTableRow"):
         cells = [td.get_text(strip=True) for td in tr.find_all("td")]
-        row = {name: (cells[i] if i < len(cells) else "") for i, name in named_cols}
+        row = {name: (cells[i] if i < len(cells) else "").rstrip("+")
+               for i, name in named_cols}
         rows.append(row)
     if not rows:
         raise ValueError("WheelSearch returned 0 rows — aborting to avoid overwriting FTP with empty file")
