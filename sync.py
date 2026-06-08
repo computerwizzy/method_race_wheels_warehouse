@@ -42,7 +42,9 @@ def login(session: requests.Session) -> None:
     page.raise_for_status()
     soup = BeautifulSoup(page.text, "html.parser")
     token_input = soup.find("input", {"name": "__RequestVerificationToken"})
-    token = token_input["value"] if token_input else ""
+    if not token_input:
+        raise RuntimeError("Could not find CSRF token on login page — page structure may have changed")
+    token = token_input["value"]
     payload = {
         "UserName": TIREWEB_USER,
         "Password": TIREWEB_PASS,

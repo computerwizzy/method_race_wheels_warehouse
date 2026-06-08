@@ -62,3 +62,11 @@ class TestLogin:
         session = self._make_session("https://method.tireweb.com/Account/LogOn")
         with pytest.raises(RuntimeError, match="Login failed"):
             sync.login(session)
+
+    def test_raises_when_csrf_token_not_found(self):
+        session = MagicMock()
+        login_page = MagicMock()
+        login_page.text = "<html><body><form></form></body></html>"
+        session.get.return_value = login_page
+        with pytest.raises(RuntimeError, match="CSRF token"):
+            sync.login(session)
