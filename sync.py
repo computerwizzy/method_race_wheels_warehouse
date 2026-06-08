@@ -30,7 +30,7 @@ SEARCH_PARAMS = {
     "Offset": "",
     "WheelSearchType": "0",
 }
-LOCAL_CSV = "inventory.csv"
+LOCAL_CSV = "MRW_Inventory_Report.csv"
 
 
 def log(msg: str) -> None:

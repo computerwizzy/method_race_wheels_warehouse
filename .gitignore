@@ -4,4 +4,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 sync.log
-inventory.csv
+MRW_Inventory_Report.csv
