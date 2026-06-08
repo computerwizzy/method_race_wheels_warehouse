@@ -1,0 +1,32 @@
+name: Method Race Wheels Inventory Sync
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'  # runs at 00:00, 08:00, 16:00 UTC every day
+  workflow_dispatch:        # allows manual trigger from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run inventory sync
+        env:
+          TIREWEB_USER: ${{ secrets.TIREWEB_USER }}
+          TIREWEB_PASS: ${{ secrets.TIREWEB_PASS }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: python sync.py
