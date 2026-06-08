@@ -64,13 +64,21 @@ def fetch_wheels(session: requests.Session) -> list[dict]:
     table = soup.find("table")
     if not table:
         raise ValueError("No table found in WheelSearch response")
-    headers = [th.get_text(strip=True) for th in table.find_all("th")]
-    tbody = table.find("tbody")
+    # Build index→name map from header row; skip blank headers and mobile-only columns
+    header_cells = table.find("tr").find_all(["th", "td"])
+    n_cols = len(header_cells)
+    named_cols = [
+        (i, cell.get_text(strip=True))
+        for i, cell in enumerate(header_cells)
+        if cell.get_text(strip=True) and i < n_cols
+        # skip cols 17-22: empty/button/concatenated-duplicate columns
+        and i not in (17, 18, 19, 20, 21, 22)
+    ]
     rows = []
-    for tr in (tbody or table).find_all("tr"):
+    for tr in table.find_all("tr", class_="BuyingTableRow"):
         cells = [td.get_text(strip=True) for td in tr.find_all("td")]
-        if cells:
-            rows.append(dict(zip(headers, cells)))
+        row = {name: (cells[i] if i < len(cells) else "") for i, name in named_cols}
+        rows.append(row)
     if not rows:
         raise ValueError("WheelSearch returned 0 rows — aborting to avoid overwriting FTP with empty file")
     return rows
