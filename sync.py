@@ -91,7 +91,36 @@ def upload_ftp(local_path: str) -> None:
 
 
 def main() -> None:
-    raise NotImplementedError
+    log("Starting Method Race Wheels inventory sync")
+    try:
+        session = requests.Session()
+        session.headers["User-Agent"] = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+
+        log("Logging in to TireWeb...")
+        login(session)
+        log("Login successful")
+
+        log("Fetching wheel inventory...")
+        rows = fetch_wheels(session)
+        log(f"Fetched {len(rows)} wheels")
+
+        log("Writing local CSV...")
+        write_csv(rows, LOCAL_CSV)
+
+        log(f"Uploading to {FTP_HOST}{FTP_PATH}...")
+        upload_ftp(LOCAL_CSV)
+        log("Upload complete")
+
+        if os.path.exists(LOCAL_CSV):
+            os.remove(LOCAL_CSV)
+        log("Sync complete — local CSV deleted")
+    except Exception as exc:
+        log(f"ERROR: {exc}")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
