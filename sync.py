@@ -16,7 +16,7 @@ FTP_USER = os.getenv("FTP_USER")
 FTP_PASS = os.getenv("FTP_PASS")
 FTP_PATH = os.getenv("FTP_PATH", "/inventory.csv")
 
-LOGIN_PAGE_URL = "https://method.tireweb.com/Account/LogOn"
+LOGIN_PAGE_URL = "https://method.tireweb.com/Logon/Login"
 SEARCH_URL = "https://method.tireweb.com/WheelSearch/ByWheelElements"
 SEARCH_PARAMS = {
     "UserTabLinkId": "",
@@ -46,14 +46,14 @@ def login(session: requests.Session) -> None:
         raise RuntimeError("Could not find CSRF token on login page — page structure may have changed")
     token = token_input["value"]
     payload = {
-        "UserName": TIREWEB_USER,
+        "Username": TIREWEB_USER,
         "Password": TIREWEB_PASS,
         "RememberMe": "false",
         "__RequestVerificationToken": token,
     }
     resp = session.post(LOGIN_PAGE_URL, data=payload)
     resp.raise_for_status()
-    if "LogOn" in resp.url or "login" in resp.url.lower():
+    if "Login" in resp.url or "login" in resp.url.lower():
         raise RuntimeError("Login failed — check TIREWEB_USER and TIREWEB_PASS in .env")
 
 
