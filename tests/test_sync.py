@@ -70,3 +70,56 @@ class TestLogin:
         session.get.return_value = login_page
         with pytest.raises(RuntimeError, match="CSRF token"):
             sync.login(session)
+
+
+class TestFetchWheels:
+    def test_parses_table_into_list_of_dicts(self):
+        session = MagicMock()
+        resp = MagicMock()
+        resp.text = MOCK_WHEELS_HTML
+        session.get.return_value = resp
+
+        rows = sync.fetch_wheels(session)
+
+        assert len(rows) == 2
+        assert rows[0]["Part Number"] == "301-5883B"
+        assert rows[0]["Price"] == "$299.99"
+        assert rows[1]["Description"] == "Method 305 20x10 Chrome"
+        assert rows[1]["Stock"] == "2"
+
+    def test_raises_when_no_table_in_response(self):
+        session = MagicMock()
+        resp = MagicMock()
+        resp.text = "<html><body><p>No results</p></body></html>"
+        session.get.return_value = resp
+
+        with pytest.raises(ValueError, match="No table found"):
+            sync.fetch_wheels(session)
+
+    def test_raises_when_table_has_zero_data_rows(self):
+        session = MagicMock()
+        resp = MagicMock()
+        resp.text = """
+        <html><body>
+        <table>
+          <thead><tr><th>Part Number</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        </body></html>
+        """
+        session.get.return_value = resp
+
+        with pytest.raises(ValueError, match="0 rows"):
+            sync.fetch_wheels(session)
+
+    def test_requests_correct_url_and_params(self):
+        session = MagicMock()
+        resp = MagicMock()
+        resp.text = MOCK_WHEELS_HTML
+        session.get.return_value = resp
+
+        sync.fetch_wheels(session)
+
+        call_args, call_kwargs = session.get.call_args
+        assert call_args[0] == sync.SEARCH_URL
+        assert call_kwargs["params"]["Brand"] == "Method Race Wheels"

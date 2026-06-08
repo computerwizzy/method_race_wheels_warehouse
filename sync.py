@@ -58,7 +58,22 @@ def login(session: requests.Session) -> None:
 
 
 def fetch_wheels(session: requests.Session) -> list[dict]:
-    raise NotImplementedError
+    response = session.get(SEARCH_URL, params=SEARCH_PARAMS)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    table = soup.find("table")
+    if not table:
+        raise ValueError("No table found in WheelSearch response")
+    headers = [th.get_text(strip=True) for th in table.find_all("th")]
+    tbody = table.find("tbody")
+    rows = []
+    for tr in (tbody or table).find_all("tr"):
+        cells = [td.get_text(strip=True) for td in tr.find_all("td")]
+        if cells:
+            rows.append(dict(zip(headers, cells)))
+    if not rows:
+        raise ValueError("WheelSearch returned 0 rows — aborting to avoid overwriting FTP with empty file")
+    return rows
 
 
 def write_csv(rows: list[dict], path: str) -> None:
