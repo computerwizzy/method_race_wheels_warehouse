@@ -77,7 +77,10 @@ def fetch_wheels(session: requests.Session) -> list[dict]:
 
 
 def write_csv(rows: list[dict], path: str) -> None:
-    raise NotImplementedError
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def upload_ftp(local_path: str) -> None:

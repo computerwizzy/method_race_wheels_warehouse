@@ -123,3 +123,33 @@ class TestFetchWheels:
         call_args, call_kwargs = session.get.call_args
         assert call_args[0] == sync.SEARCH_URL
         assert call_kwargs["params"]["Brand"] == "Method Race Wheels"
+
+
+class TestWriteCsv:
+    def test_writes_header_and_all_rows(self, tmp_path):
+        rows = [
+            {"Part Number": "301-5883B", "Price": "$299.99", "Stock": "5"},
+            {"Part Number": "305-7883C", "Price": "$399.99", "Stock": "2"},
+        ]
+        path = str(tmp_path / "out.csv")
+
+        sync.write_csv(rows, path)
+
+        with open(path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            result = list(reader)
+
+        assert len(result) == 2
+        assert result[0]["Part Number"] == "301-5883B"
+        assert result[1]["Stock"] == "2"
+
+    def test_csv_header_matches_dict_keys(self, tmp_path):
+        rows = [{"A": "1", "B": "2"}]
+        path = str(tmp_path / "out.csv")
+
+        sync.write_csv(rows, path)
+
+        with open(path, newline="", encoding="utf-8") as f:
+            header_line = f.readline().strip()
+
+        assert header_line == "A,B"
